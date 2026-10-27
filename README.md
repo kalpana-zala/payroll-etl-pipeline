@@ -2,7 +2,7 @@
 
 An end-to-end data engineering project: three clients send timesheets in three different formats, and this pipeline turns them into a validated, query-ready payroll warehouse with a reporting layer for Power BI.
 
-**Live dashboard:** https://claude.ai/artifact/2UvwYvgvyRFFLnCBCAkpgV
+**Live dashboard:** [kalpana-zala.github.io/payroll-etl-pipeline](https://kalpana-zala.github.io/payroll-etl-pipeline/)
 ![Pipeline](https://img.shields.io/badge/Python-pandas-1d6b55) ![SQL](https://img.shields.io/badge/SQL-star%20schema-1d6b55) ![Tests](https://img.shields.io/badge/tests-pytest-1d6b55)
 
 ---

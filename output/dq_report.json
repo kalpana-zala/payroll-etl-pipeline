@@ -1,0 +1,32 @@
+{
+  "rows_extracted": 1507,
+  "rows_valid": 1500,
+  "rows_rejected": 7,
+  "pass_rate_pct": 99.54,
+  "rejects_by_rule": [
+    {
+      "reject_code": "DQ01_MISSING_EMPLOYEE_ID",
+      "rows": 1
+    },
+    {
+      "reject_code": "DQ02_INVALID_DATE",
+      "rows": 1
+    },
+    {
+      "reject_code": "DQ04_NEGATIVE_OR_ZERO_HOURS",
+      "rows": 2
+    },
+    {
+      "reject_code": "DQ05_EXCESSIVE_HOURS",
+      "rows": 1
+    },
+    {
+      "reject_code": "DQ06_UNKNOWN_EMPLOYEE",
+      "rows": 1
+    },
+    {
+      "reject_code": "DQ07_DUPLICATE_ROW",
+      "rows": 1
+    }
+  ]
+}

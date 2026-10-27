@@ -1,0 +1,287 @@
+{
+ "kpis": {
+  "employees": 30,
+  "shifts": 1500,
+  "hours": 10729.0,
+  "overtime_hours": 106.0,
+  "gross_pay": 470936.03
+ },
+ "by_period": [
+  {
+   "pay_period_id": "PP01",
+   "period_start": "2026-08-03",
+   "period_end": "2026-08-16",
+   "hours": 1738.5,
+   "overtime_hours": 11.5,
+   "ordinary_pay": 75413.38,
+   "overtime_pay": 212.41,
+   "gross_pay": 75625.79
+  },
+  {
+   "pay_period_id": "PP02",
+   "period_start": "2026-08-17",
+   "period_end": "2026-08-30",
+   "hours": 1748.5,
+   "overtime_hours": 11.0,
+   "ordinary_pay": 73823.72,
+   "overtime_pay": 203.8,
+   "gross_pay": 74027.52
+  },
+  {
+   "pay_period_id": "PP03",
+   "period_start": "2026-08-31",
+   "period_end": "2026-09-13",
+   "hours": 1771.5,
+   "overtime_hours": 16.0,
+   "ordinary_pay": 73981.39,
+   "overtime_pay": 255.89,
+   "gross_pay": 74237.28
+  },
+  {
+   "pay_period_id": "PP04",
+   "period_start": "2026-09-14",
+   "period_end": "2026-09-27",
+   "hours": 1864.0,
+   "overtime_hours": 23.5,
+   "ordinary_pay": 78227.78,
+   "overtime_pay": 403.05,
+   "gross_pay": 78630.83
+  },
+  {
+   "pay_period_id": "PP05",
+   "period_start": "2026-09-28",
+   "period_end": "2026-10-11",
+   "hours": 1830.5,
+   "overtime_hours": 24.0,
+   "ordinary_pay": 85035.0,
+   "overtime_pay": 383.47,
+   "gross_pay": 85418.47
+  },
+  {
+   "pay_period_id": "PP06",
+   "period_start": "2026-10-12",
+   "period_end": "2026-10-25",
+   "hours": 1776.0,
+   "overtime_hours": 20.0,
+   "ordinary_pay": 82678.66,
+   "overtime_pay": 317.48,
+   "gross_pay": 82996.14
+  }
+ ],
+ "by_client": [
+  {
+   "client_name": "Client A",
+   "employees": 10,
+   "hours": 3628.0,
+   "gross_pay": 153019.69
+  },
+  {
+   "client_name": "Client B",
+   "employees": 10,
+   "hours": 3648.0,
+   "gross_pay": 161573.32
+  },
+  {
+   "client_name": "Client C",
+   "employees": 10,
+   "hours": 3453.0,
+   "gross_pay": 156343.02
+  }
+ ],
+ "by_shift_type": [
+  {
+   "shift_type": "Weekday",
+   "hours": 6368.5,
+   "gross_pay": 217029.32
+  },
+  {
+   "shift_type": "Sunday",
+   "hours": 1554.5,
+   "gross_pay": 108295.88
+  },
+  {
+   "shift_type": "Saturday",
+   "hours": 1481.5,
+   "gross_pay": 75918.69
+  },
+  {
+   "shift_type": "Evening",
+   "hours": 952.0,
+   "gross_pay": 37929.23
+  },
+  {
+   "shift_type": "Holiday",
+   "hours": 372.5,
+   "gross_pay": 31762.91
+  }
+ ],
+ "top_overtime": [
+  {
+   "full_name": "Jack Garcia",
+   "client_name": "Client B",
+   "overtime_hours": 19.0,
+   "overtime_pay": 396.63
+  },
+  {
+   "full_name": "Lucas Brown",
+   "client_name": "Client A",
+   "overtime_hours": 11.0,
+   "overtime_pay": 163.9
+  },
+  {
+   "full_name": "Aarav Joshi",
+   "client_name": "Client A",
+   "overtime_hours": 9.0,
+   "overtime_pay": 141.75
+  },
+  {
+   "full_name": "Ava Taylor",
+   "client_name": "Client B",
+   "overtime_hours": 8.5,
+   "overtime_pay": 153.85
+  },
+  {
+   "full_name": "Diya Taylor",
+   "client_name": "Client B",
+   "overtime_hours": 8.0,
+   "overtime_pay": 126.0
+  },
+  {
+   "full_name": "Jack Mehta",
+   "client_name": "Client A",
+   "overtime_hours": 8.0,
+   "overtime_pay": 125.99
+  },
+  {
+   "full_name": "Henry Clark",
+   "client_name": "Client A",
+   "overtime_hours": 7.0,
+   "overtime_pay": 110.26
+  },
+  {
+   "full_name": "Isla Taylor",
+   "client_name": "Client A",
+   "overtime_hours": 6.0,
+   "overtime_pay": 89.4
+  }
+ ],
+ "rejects": [
+  {
+   "reject_code": "DQ01_MISSING_EMPLOYEE_ID",
+   "reject_reason": "Employee ID is blank",
+   "source_client": "CLT-B",
+   "source_row": 505,
+   "employee_id": null,
+   "work_date": "2026-09-05",
+   "hours_raw": 8.0
+  },
+  {
+   "reject_code": "DQ02_INVALID_DATE",
+   "reject_reason": "Work date could not be parsed",
+   "source_client": "CLT-B",
+   "source_row": 506,
+   "employee_id": "E1012",
+   "work_date": null,
+   "hours_raw": 6.0
+  },
+  {
+   "reject_code": "DQ04_NEGATIVE_OR_ZERO_HOURS",
+   "reject_reason": "Hours below 0.25",
+   "source_client": "CLT-A",
+   "source_row": 499,
+   "employee_id": "E1003",
+   "work_date": "2026-09-02",
+   "hours_raw": -4.0
+  },
+  {
+   "reject_code": "DQ04_NEGATIVE_OR_ZERO_HOURS",
+   "reject_reason": "Hours below 0.25",
+   "source_client": "CLT-C",
+   "source_row": 501,
+   "employee_id": "E1025",
+   "work_date": "2026-09-08",
+   "hours_raw": -8.0
+  },
+  {
+   "reject_code": "DQ05_EXCESSIVE_HOURS",
+   "reject_reason": "Shift longer than 16.0 hours",
+   "source_client": "CLT-B",
+   "source_row": 507,
+   "employee_id": "E1014",
+   "work_date": "2026-09-10",
+   "hours_raw": 26.0
+  },
+  {
+   "reject_code": "DQ06_UNKNOWN_EMPLOYEE",
+   "reject_reason": "Employee ID not in employee master",
+   "source_client": "CLT-A",
+   "source_row": 498,
+   "employee_id": "E9999",
+   "work_date": "2026-09-01",
+   "hours_raw": 8.0
+  },
+  {
+   "reject_code": "DQ07_DUPLICATE_ROW",
+   "reject_reason": "Exact duplicate of an earlier record",
+   "source_client": "CLT-A",
+   "source_row": 497,
+   "employee_id": "E1001",
+   "work_date": "2026-08-14",
+   "hours_raw": 6.0
+  }
+ ],
+ "runs": [
+  {
+   "run_id": 1,
+   "started_at": "2026-10-27T03:58:07",
+   "status": "SUCCESS",
+   "rows_extracted": 1507,
+   "rows_valid": 1500,
+   "rows_rejected": 7,
+   "rows_inserted": 1500,
+   "rows_skipped": 0
+  },
+  {
+   "run_id": 2,
+   "started_at": "2026-10-27T03:58:07",
+   "status": "SUCCESS",
+   "rows_extracted": 1507,
+   "rows_valid": 1500,
+   "rows_rejected": 7,
+   "rows_inserted": 0,
+   "rows_skipped": 1500
+  }
+ ],
+ "dq": {
+  "rows_extracted": 1507,
+  "rows_valid": 1500,
+  "rows_rejected": 7,
+  "pass_rate_pct": 99.54,
+  "rejects_by_rule": [
+   {
+    "reject_code": "DQ01_MISSING_EMPLOYEE_ID",
+    "rows": 1
+   },
+   {
+    "reject_code": "DQ02_INVALID_DATE",
+    "rows": 1
+   },
+   {
+    "reject_code": "DQ04_NEGATIVE_OR_ZERO_HOURS",
+    "rows": 2
+   },
+   {
+    "reject_code": "DQ05_EXCESSIVE_HOURS",
+    "rows": 1
+   },
+   {
+    "reject_code": "DQ06_UNKNOWN_EMPLOYEE",
+    "rows": 1
+   },
+   {
+    "reject_code": "DQ07_DUPLICATE_ROW",
+    "rows": 1
+   }
+  ]
+ }
+}

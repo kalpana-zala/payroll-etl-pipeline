@@ -1,0 +1,230 @@
+<title>Payroll ETL Pipeline</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: ledger-style operations console — pipeline strip, KPI row, two-column charts, quarantine + run log tables */
+:root {
+  --bg: #f3f6f5;
+  --surface: #ffffff;
+  --ink: #15211d;
+  --muted: #5b6b66;
+  --line: #d9e2df;
+  --accent: #1d6b55;      /* ledger green: ordinary pay */
+  --accent-soft: #d6ebe3;
+  --ot: #c07a16;          /* overtime amber */
+  --bad: #b3412f;
+  --good: #2c7a4b;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1614; --surface: #17211e; --ink: #e4ece9; --muted: #93a49f; --line: #2a3733;
+  --accent: #4fb592; --accent-soft: #1d3a31; --ot: #e2a24a; --bad: #e07a66; --good: #6cc48f; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1614; --surface: #17211e; --ink: #e4ece9; --muted: #93a49f; --line: #2a3733;
+  --accent: #4fb592; --accent-soft: #1d3a31; --ot: #e2a24a; --bad: #e07a66; --good: #6cc48f; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 32px 48px; display: grid; gap: 28px }
+h1, h2 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15 }
+h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; letter-spacing: -0.01em }
+h2 { font-size: 1.1rem; font-weight: 700 }
+.eyebrow { font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent) }
+.lede { color: var(--muted); max-width: 68ch; margin: 8px 0 0 }
+.byline { font-size: 13px; color: var(--muted); margin-top: 10px }
+.byline strong { color: var(--ink) }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums }
+
+/* pipeline strip */
+.flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden }
+.stage { padding: 14px 16px; border-left: 1px solid var(--line); position: relative; min-width: 0 }
+.stage:first-child { border-left: 0 }
+.stage .k { font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+.stage .v { font: 500 20px var(--mono); font-variant-numeric: tabular-nums; margin-top: 2px }
+.stage .d { font-size: 12.5px; color: var(--muted) }
+.stage:not(:last-child)::after { content: "→"; position: absolute; right: -8px; top: 50%; transform: translateY(-50%);
+  background: var(--surface); color: var(--accent); font-size: 14px; z-index: 1; padding: 0 1px }
+.v.bad { color: var(--bad) } .v.good { color: var(--good) }
+
+/* kpis */
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px }
+.kpi { padding: 4px 0 0; border-top: 2px solid var(--ink) }
+.kpi .k { font-size: 12.5px; color: var(--muted) }
+.kpi .v { font: 500 clamp(1.2rem, 2.4vw, 1.6rem) var(--mono); font-variant-numeric: tabular-nums }
+
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; display: grid; gap: 12px; align-content: start }
+.panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap }
+.legend { display: flex; gap: 14px; font-size: 12.5px; color: var(--muted) }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px }
+svg text { font-family: var(--mono); font-size: 11px; fill: var(--muted) }
+svg .lbl { fill: var(--ink) }
+
+.scroll { overflow-x: auto }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px }
+th { text-align: left; font: 500 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap }
+td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top }
+td.r, th.r { text-align: right }
+tr:last-child td { border-bottom: 0 }
+.code { font: 500 11.5px var(--mono); padding: 2px 7px; border-radius: 999px; background: color-mix(in srgb, var(--bad) 14%, transparent); color: var(--bad); white-space: nowrap }
+.ok { font: 500 11.5px var(--mono); padding: 2px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--accent) }
+.note { font-size: 13px; color: var(--muted); margin: 0 }
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap }
+
+@media (max-width: 860px) {
+  .grid2 { grid-template-columns: minmax(0, 1fr) }
+  .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)) }
+}
+@media (max-width: 560px) {
+  .flow { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .stage:nth-child(3) { border-left: 0 }
+  .stage:nth-child(n+3) { border-top: 1px solid var(--line) }
+  .stage:nth-child(2)::after { display: none }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Data engineering portfolio · Python · SQL · ETL</div>
+    <h1>Payroll ETL Pipeline</h1>
+    <p class="lede">Three clients send timesheets in three different formats: a clean CSV, a messy spreadsheet export and an API JSON feed. This pipeline extracts all three, quarantines bad rows with a reason, applies shift penalty rates and weekly overtime, and loads a star-schema warehouse that payroll and Power BI read from. Every number below comes from the pipeline's own output.</p>
+    <div class="byline">Built by <strong>Kalpana Zala</strong> · dummy data, 30 employees, 12 weeks, 6 fortnightly pay periods</div>
+  </header>
+
+  <section class="flow" id="flow" aria-label="Pipeline stages"></section>
+
+  <section class="kpis" id="kpis" aria-label="Payroll totals"></section>
+
+  <section class="grid2">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Gross pay by pay period</h2>
+        <div class="legend"><span><i style="background:var(--accent)"></i>Ordinary</span><span><i style="background:var(--ot)"></i>Overtime</span></div>
+      </div>
+      <div id="periodChart"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Pay by shift type</h2><span class="note">penalty multiplier in brackets</span></div>
+      <div id="shiftChart"></div>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div class="panel">
+      <div class="panel-head"><h2>Data-quality quarantine</h2><span class="ok" id="passRate"></span></div>
+      <p class="note">Rows that fail a rule are written to <span class="num">dq_rejects</span> with the source file row, so the client can fix them. Nothing is silently dropped.</p>
+      <div class="scroll"><table id="rejects"></table></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Payroll by client</h2></div>
+      <div class="scroll"><table id="clients"></table></div>
+      <h2 style="margin-top:8px">Most overtime</h2>
+      <div class="scroll"><table id="overtime"></table></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Pipeline run log</h2><span class="note">run 2 re-processes the same files and inserts nothing: loads are idempotent</span></div>
+    <div class="scroll"><table id="runs"></table></div>
+  </section>
+
+  <footer>
+    <span>Stack: Python (pandas) · SQL · SQLite star schema (portable to SQL Server / BigQuery) · pytest · Power BI-ready CSV</span>
+    <span>All names and figures are fictional.</span>
+  </footer>
+</div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById('data').textContent);
+const fmt = (n, d = 0) => Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+const esc = s => String(s ?? '—').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const lastRun = D.runs[D.runs.length - 1];
+const firstRun = D.runs[0];
+
+// pipeline strip
+document.getElementById('flow').innerHTML = [
+  ['Extract', fmt(D.dq.rows_extracted), '3 sources · CSV, CSV, JSON', ''],
+  ['Validate', fmt(D.dq.rows_rejected) + ' rejected', '7 rules · ' + D.dq.pass_rate_pct + '% pass', 'bad'],
+  ['Transform', fmt(D.kpis.shifts) + ' shifts', 'penalty rates · weekly overtime', ''],
+  ['Load', fmt(firstRun.rows_inserted) + ' rows', 'upsert on row hash · ' + D.runs.length + ' runs', 'good'],
+].map(([k, v, d, c]) => `<div class="stage"><div class="k">${k}</div><div class="v ${c}">${v}</div><div class="d">${d}</div></div>`).join('');
+
+// kpis
+document.getElementById('kpis').innerHTML = [
+  ['Employees', fmt(D.kpis.employees)],
+  ['Shifts loaded', fmt(D.kpis.shifts)],
+  ['Hours', fmt(D.kpis.hours, 1)],
+  ['Overtime hours', fmt(D.kpis.overtime_hours, 1)],
+  ['Gross pay', fmt(D.kpis.gross_pay)],
+].map(([k, v]) => `<div class="kpi"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+
+// stacked column chart by pay period
+(function () {
+  const P = D.by_period, W = 560, H = 260, m = { t: 14, r: 10, b: 44, l: 58 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const max = Math.max(...P.map(p => p.gross_pay));
+  const raw = max / 4, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map(f => f * mag).find(s => s >= raw);
+  const top = Math.ceil(max / step) * step;
+  const y = v => m.t + ih - (v / top) * ih;
+  const bw = iw / P.length;
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Gross pay per pay period">`;
+  for (let v = 0; v <= top; v += step) {
+    s += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/>`;
+    s += `<text x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end">${fmt(v / 1000)}k</text>`;
+  }
+  P.forEach((p, i) => {
+    const x = m.l + i * bw + bw * 0.18, w = bw * 0.64;
+    s += `<rect x="${x}" y="${y(p.ordinary_pay)}" width="${w}" height="${y(0) - y(p.ordinary_pay)}" fill="var(--accent)"><title>${p.pay_period_id}: ordinary ${fmt(p.ordinary_pay, 2)}</title></rect>`;
+    s += `<rect x="${x}" y="${y(p.gross_pay)}" width="${w}" height="${Math.max(y(p.ordinary_pay) - y(p.gross_pay), 1)}" fill="var(--ot)"><title>${p.pay_period_id}: overtime ${fmt(p.overtime_pay, 2)}</title></rect>`;
+    s += `<text class="lbl" x="${x + w / 2}" y="${y(p.gross_pay) - 5}" text-anchor="middle">${fmt(p.gross_pay / 1000, 1)}k</text>`;
+    s += `<text x="${x + w / 2}" y="${H - m.b + 16}" text-anchor="middle">${p.pay_period_id}</text>`;
+    s += `<text x="${x + w / 2}" y="${H - m.b + 30}" text-anchor="middle">${p.period_start.slice(5).replace('-', '/')}</text>`;
+  });
+  document.getElementById('periodChart').innerHTML = s + '</svg>';
+})();
+
+// horizontal bars by shift type
+(function () {
+  const mult = { Weekday: 1, Evening: 1.15, Saturday: 1.5, Sunday: 2, Holiday: 2.5 };
+  const S = D.by_shift_type, W = 400, rh = 40, H = S.length * rh + 6, lw = 118, rw = 70;
+  const max = Math.max(...S.map(s => s.gross_pay));
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Gross pay by shift type">`;
+  S.forEach((r, i) => {
+    const y0 = i * rh + 6, w = (r.gross_pay / max) * (W - lw - rw);
+    s += `<text class="lbl" x="0" y="${y0 + 13}">${r.shift_type} (×${mult[r.shift_type]})</text>`;
+    s += `<text x="0" y="${y0 + 28}">${fmt(r.hours, 1)} h</text>`;
+    s += `<rect x="${lw}" y="${y0 + 6}" width="${w}" height="18" rx="2" fill="var(--accent)" opacity="${0.45 + 0.55 * (r.gross_pay / max)}"/>`;
+    s += `<text class="lbl" x="${lw + w + 6}" y="${y0 + 19}">${fmt(r.gross_pay / 1000, 1)}k</text>`;
+  });
+  document.getElementById('shiftChart').innerHTML = s + '</svg>';
+})();
+
+// tables
+document.getElementById('passRate').textContent = D.dq.pass_rate_pct + '% rows passed';
+document.getElementById('rejects').innerHTML =
+  '<tr><th>Rule</th><th>Source</th><th class="r">Row</th><th>Employee</th><th class="r">Hours</th></tr>' +
+  D.rejects.map(r => `<tr><td><span class="code">${esc(r.reject_code.replace(/^DQ\d+_/, '').replaceAll('_', ' ').toLowerCase())}</span></td>
+    <td class="num">${esc(r.source_client)}</td><td class="r num">${r.source_row}</td><td class="num">${esc(r.employee_id)}</td>
+    <td class="r num">${r.hours_raw == null ? '—' : fmt(r.hours_raw, 1)}</td></tr>`).join('');
+
+document.getElementById('clients').innerHTML =
+  '<tr><th>Client</th><th class="r">Staff</th><th class="r">Hours</th><th class="r">Gross pay</th></tr>' +
+  D.by_client.map(c => `<tr><td>${esc(c.client_name)}</td><td class="r num">${c.employees}</td><td class="r num">${fmt(c.hours, 1)}</td><td class="r num">${fmt(c.gross_pay, 2)}</td></tr>`).join('');
+
+document.getElementById('overtime').innerHTML =
+  '<tr><th>Employee</th><th>Client</th><th class="r">OT hours</th><th class="r">OT pay</th></tr>' +
+  D.top_overtime.slice(0, 5).map(o => `<tr><td>${esc(o.full_name)}</td><td>${esc(o.client_name)}</td><td class="r num">${fmt(o.overtime_hours, 1)}</td><td class="r num">${fmt(o.overtime_pay, 2)}</td></tr>`).join('');
+
+document.getElementById('runs').innerHTML =
+  '<tr><th>Run</th><th>Started</th><th>Status</th><th class="r">Extracted</th><th class="r">Valid</th><th class="r">Rejected</th><th class="r">Inserted</th><th class="r">Skipped</th></tr>' +
+  D.runs.map(r => `<tr><td class="num">#${r.run_id}</td><td class="num">${esc(r.started_at.replace('T', ' '))}</td><td><span class="ok">${esc(r.status.toLowerCase())}</span></td>
+    <td class="r num">${fmt(r.rows_extracted)}</td><td class="r num">${fmt(r.rows_valid)}</td><td class="r num">${fmt(r.rows_rejected)}</td>
+    <td class="r num">${fmt(r.rows_inserted)}</td><td class="r num">${fmt(r.rows_skipped)}</td></tr>`).join('');
+</script>
